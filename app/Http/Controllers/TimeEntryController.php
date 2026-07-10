@@ -57,15 +57,43 @@ class TimeEntryController extends Controller
         return redirect()->route('employees.index')->with('success', 'Time tracking stopped!');
     }
 
-    public function export()
+    public function exportPage()
+    {
+        return view('time-entries.export');
+    }
+
+    public function exportAll()
     {
         $timeEntries = TimeEntry::with('employee')
             ->whereNotNull('end_time')
             ->orderBy('date', 'desc')
             ->get();
 
-        $filename = 'time_records_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'time_records_all_' . now()->format('Y-m-d_His') . '.csv';
 
+        return $this->generateCsvExport($timeEntries, $filename);
+    }
+
+    public function exportRange(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $timeEntries = TimeEntry::with('employee')
+            ->whereNotNull('end_time')
+            ->whereBetween('date', [$validated['start_date'], $validated['end_date']])
+            ->orderBy('date', 'desc')
+            ->get();
+
+        $filename = 'time_records_' . $validated['start_date'] . '_to_' . $validated['end_date'] . '.csv';
+
+        return $this->generateCsvExport($timeEntries, $filename);
+    }
+
+    private function generateCsvExport($timeEntries, $filename)
+    {
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
@@ -91,5 +119,105 @@ class TimeEntryController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function manage()
+    {
+        $timeEntries = TimeEntry::with('employee')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(20);
+
+        return view('time-entries.manage', compact('timeEntries'));
+    }
+
+    public function create()
+    {
+        $employees = Employee::orderBy('employee_number')->get();
+        return view('time-entries.create', compact('employees'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'date' => 'required|date',
+            'start_time' => 'required',
+            'end_time' => 'nullable',
+        ]);
+
+        $employee = Employee::findOrFail($validated['employee_id']);
+        
+        $startDateTime = Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
+        $endDateTime = $validated['end_time'] ? Carbon::parse($validated['date'] . ' ' . $validated['end_time']) : null;
+
+        $hoursLogged = null;
+        if ($endDateTime) {
+            $totalSeconds = $endDateTime->timestamp - $startDateTime->timestamp;
+            $hours = floor($totalSeconds / 3600);
+            $minutes = floor(($totalSeconds % 3600) / 60);
+            $seconds = $totalSeconds % 60;
+            $hoursLogged = $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . ':' . str_pad($seconds, 2, '0', STR_PAD_LEFT);
+        }
+
+        TimeEntry::create([
+            'employee_id' => $employee->id,
+            'employee_number' => $employee->employee_number,
+            'employee_name' => $employee->full_name,
+            'start_time' => $startDateTime,
+            'end_time' => $endDateTime,
+            'hours_logged' => $hoursLogged,
+            'date' => $validated['date'],
+        ]);
+
+        return redirect()->route('time.manage')->with('success', 'Time entry added successfully!');
+    }
+
+    public function edit(TimeEntry $timeEntry)
+    {
+        $employees = Employee::orderBy('employee_number')->get();
+        return view('time-entries.edit', compact('timeEntry', 'employees'));
+    }
+
+    public function update(Request $request, TimeEntry $timeEntry)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'date' => 'required|date',
+            'start_time' => 'required',
+            'end_time' => 'nullable',
+        ]);
+
+        $employee = Employee::findOrFail($validated['employee_id']);
+        
+        $startDateTime = Carbon::parse($validated['date'] . ' ' . $validated['start_time']);
+        $endDateTime = $validated['end_time'] ? Carbon::parse($validated['date'] . ' ' . $validated['end_time']) : null;
+
+        $hoursLogged = null;
+        if ($endDateTime) {
+            $totalSeconds = $endDateTime->timestamp - $startDateTime->timestamp;
+            $hours = floor($totalSeconds / 3600);
+            $minutes = floor(($totalSeconds % 3600) / 60);
+            $seconds = $totalSeconds % 60;
+            $hoursLogged = $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . ':' . str_pad($seconds, 2, '0', STR_PAD_LEFT);
+        }
+
+        $timeEntry->update([
+            'employee_id' => $employee->id,
+            'employee_number' => $employee->employee_number,
+            'employee_name' => $employee->full_name,
+            'start_time' => $startDateTime,
+            'end_time' => $endDateTime,
+            'hours_logged' => $hoursLogged,
+            'date' => $validated['date'],
+        ]);
+
+        return redirect()->route('time.manage')->with('success', 'Time entry updated successfully!');
+    }
+
+    public function destroy(TimeEntry $timeEntry)
+    {
+        $timeEntry->delete();
+        return redirect()->route('time.manage')->with('success', 'Time entry deleted successfully!');
     }
 }
