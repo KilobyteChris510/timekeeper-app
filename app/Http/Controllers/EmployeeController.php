@@ -28,7 +28,7 @@ class EmployeeController extends Controller
 
         Employee::create($validated);
 
-        return redirect()->route('employees.index')->with('success', 'Employee added successfully!');
+        return redirect()->route('admin.index')->with('success', 'Employee added successfully!');
     }
 
     public function manage()
@@ -40,6 +40,6 @@ class EmployeeController extends Controller
     public function destroy(Employee $employee)
     {
         $employee->delete();
-        return redirect()->route('employees.manage')->with('success', 'Employee deleted successfully!');
+        return redirect()->route('admin.index')->with('success', 'Employee deleted successfully!');
     }
 }
