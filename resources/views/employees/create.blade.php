@@ -50,7 +50,7 @@
             <button type="submit" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded border border-gray-600 focus:outline-none transition text-sm">
                 Add Employee
             </button>
-            <a href="{{ route('employees.index') }}" class="inline-block align-baseline font-medium text-sm text-gray-400 hover:text-gray-300 transition">
+            <a href="{{ route('admin.index') }}" class="inline-block align-baseline font-medium text-sm text-gray-400 hover:text-gray-300 transition">
                 Cancel
             </a>
         </div>

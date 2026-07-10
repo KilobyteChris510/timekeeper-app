@@ -4,8 +4,8 @@
 <div class="bg-[#262626] rounded shadow-lg p-6 border border-gray-700">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-medium text-gray-200">Manage Employees</h2>
-        <a href="{{ route('employees.index') }}" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded border border-gray-600 transition text-sm">
-            Back to Time Tracking
+        <a href="{{ route('admin.index') }}" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded border border-gray-600 transition text-sm">
+            Back to Admin
         </a>
     </div>
 
