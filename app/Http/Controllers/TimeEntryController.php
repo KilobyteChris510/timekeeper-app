@@ -121,14 +121,24 @@ class TimeEntryController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function manage()
+    public function manage(Request $request)
     {
+        $validated = $request->validate([
+            'employee_id' => 'nullable|integer|exists:employees,id',
+        ]);
+
         $timeEntries = TimeEntry::with('employee')
+            ->when($validated['employee_id'] ?? null, function ($query, $employeeId) {
+                $query->where('employee_id', $employeeId);
+            })
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('time-entries.manage', compact('timeEntries'));
+        $employees = Employee::orderBy('employee_number')->get();
+
+        return view('time-entries.manage', compact('timeEntries', 'employees'));
     }
 
     public function create()

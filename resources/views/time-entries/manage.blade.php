@@ -14,6 +14,30 @@
         </div>
     </div>
 
+    <form action="{{ route('time.manage') }}" method="GET" class="flex flex-wrap items-end gap-3 mb-6 p-4 bg-[#1a1a1a] rounded border border-gray-700">
+        <div class="flex-1 min-w-[220px]">
+            <label for="employee_id" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                Filter by employee
+            </label>
+            <select id="employee_id" name="employee_id" class="w-full bg-[#262626] border border-gray-600 text-gray-200 rounded px-3 py-2 text-sm focus:border-green-600 focus:ring-green-600">
+                <option value="">All employees</option>
+                @foreach($employees as $employee)
+                    <option value="{{ $employee->id }}" @selected((string) request('employee_id') === (string) $employee->id)>
+                        {{ $employee->employee_number }} - {{ $employee->full_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <button type="submit" class="bg-green-700 hover:bg-green-600 text-white font-medium py-2 px-4 rounded border border-green-600 transition text-sm">
+            Filter
+        </button>
+        @if(request()->filled('employee_id'))
+            <a href="{{ route('time.manage') }}" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded border border-gray-600 transition text-sm">
+                Clear
+            </a>
+        @endif
+    </form>
+
     @if($timeEntries->isEmpty())
         <p class="text-gray-400 text-center py-8 text-sm">No time entries found.</p>
     @else
