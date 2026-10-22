@@ -7,6 +7,10 @@ use App\Http\Middleware\AdminPassword;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [EmployeeController::class, 'index'])->name('employees.index');
+Route::post('/employees/{employee}/start', [TimeEntryController::class, 'start'])->name('time.start');
+Route::post('/employees/{employee}/stop', [TimeEntryController::class, 'stop'])->name('time.stop');
+Route::get('/employees/{employee}/time-entry/edit', [TimeEntryController::class, 'editActive'])->name('time.active.edit');
+Route::put('/employees/{employee}/time-entry', [TimeEntryController::class, 'updateActive'])->name('time.active.update');
 Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('admin.login.submit');
 
