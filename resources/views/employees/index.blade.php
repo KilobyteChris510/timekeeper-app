@@ -76,12 +76,17 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
-                                    <form action="{{ route('time.stop', $employee) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="bg-green-700 hover:bg-green-600 text-white font-medium py-2 px-6 rounded border border-green-600 transition text-sm">
-                                            Done
-                                        </button>
-                                    </form>
+                                    <div class="inline-flex items-center gap-2">
+                                        <a href="{{ route('time.active.edit', $employee) }}" class="inline-flex w-20 items-center justify-center bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded border border-blue-600 transition text-sm">
+                                            Edit
+                                        </a>
+                                        <form action="{{ route('time.stop', $employee) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="button" class="review-completion-btn inline-flex w-20 items-center justify-center bg-green-700 hover:bg-green-600 text-white font-medium py-2 px-4 rounded border border-green-600 transition text-sm" data-employee="{{ $employee->full_name }}" data-start="{{ $activeEntry->start_time->format('M d, Y g:i A') }}">
+                                                Done
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -90,6 +95,31 @@
             </div>
         @endif
     @endif
+</div>
+
+<div id="completion-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" role="dialog" aria-modal="true" aria-labelledby="completion-modal-title">
+    <div class="w-full max-w-md bg-[#262626] rounded-lg shadow-xl border border-gray-700 p-6">
+        <h3 id="completion-modal-title" class="text-lg font-medium text-gray-200">Review time before completing</h3>
+        <p class="text-sm text-gray-400 mt-2">
+            Please double-check the details for <span id="review-employee" class="text-gray-200 font-medium"></span>.
+        </p>
+        <div class="mt-5 space-y-3 bg-[#1a1a1a] rounded border border-gray-700 p-4 text-sm">
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-400">Started</span>
+                <span id="review-start" class="text-gray-200 font-mono text-right"></span>
+            </div>
+            <div class="flex justify-between gap-4">
+                <span class="text-gray-400">Completing now</span>
+                <span id="review-end" class="text-gray-200 font-mono text-right"></span>
+            </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-4">Need to change the start or end time? Choose Edit Entry before completing.</p>
+        <div class="flex justify-end gap-2 mt-6">
+            <button type="button" id="cancel-completion" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded border border-gray-600 transition text-sm">Cancel</button>
+            <a id="edit-active-entry" href="#" class="bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded border border-blue-600 transition text-sm">Edit Entry</a>
+            <button type="button" id="confirm-completion" class="bg-green-700 hover:bg-green-600 text-white font-medium py-2 px-4 rounded border border-green-600 transition text-sm">Confirm &amp; Complete</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -122,6 +152,45 @@
         });
     }
     
+    // Review the current times before committing the active entry.
+    const completionModal = document.getElementById('completion-modal');
+    const cancelCompletion = document.getElementById('cancel-completion');
+    const confirmCompletion = document.getElementById('confirm-completion');
+    const editActiveEntry = document.getElementById('edit-active-entry');
+    let completionForm = null;
+
+    document.querySelectorAll('.review-completion-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            completionForm = this.closest('form');
+            document.getElementById('review-employee').textContent = this.dataset.employee;
+            document.getElementById('review-start').textContent = this.dataset.start;
+            document.getElementById('review-end').textContent = new Date().toLocaleString([], {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+            editActiveEntry.href = this.closest('tr').querySelector('a[href*="time-entry/edit"]').href;
+            completionModal.classList.remove('hidden');
+        });
+    });
+
+    function closeCompletionModal() {
+        completionModal.classList.add('hidden');
+        completionForm = null;
+    }
+
+    cancelCompletion.addEventListener('click', closeCompletionModal);
+    confirmCompletion.addEventListener('click', function() {
+        if (completionForm) {
+            completionForm.submit();
+        }
+    });
+
+    completionModal.addEventListener('click', function(event) {
+        if (event.target === completionModal) {
+            closeCompletionModal();
+        }
+    });
+
     // Timer update function
     function updateTimers() {
         document.querySelectorAll('.timer').forEach(timer => {

@@ -57,6 +57,60 @@ class TimeEntryController extends Controller
         return redirect()->route('employees.index')->with('success', 'Time tracking stopped!');
     }
 
+    public function editActive(Employee $employee)
+    {
+        $timeEntry = TimeEntry::where('employee_id', $employee->id)
+            ->whereNull('end_time')
+            ->first();
+
+        if (!$timeEntry) {
+            return redirect()->route('employees.index')->with('error', 'No active time entry found!');
+        }
+
+        return view('time-entries.active-edit', compact('employee', 'timeEntry'));
+    }
+
+    public function updateActive(Request $request, Employee $employee)
+    {
+        $validated = $request->validate([
+            'start_time' => 'required|date',
+            'end_time' => 'nullable|date|after:start_time',
+        ]);
+
+        $timeEntry = TimeEntry::where('employee_id', $employee->id)
+            ->whereNull('end_time')
+            ->first();
+
+        if (!$timeEntry) {
+            return redirect()->route('employees.index')->with('error', 'No active time entry found!');
+        }
+
+        $startTime = Carbon::parse($validated['start_time']);
+        $endTime = !empty($validated['end_time']) ? Carbon::parse($validated['end_time']) : null;
+
+        $timeEntry->update([
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'hours_logged' => $endTime ? $this->formatDuration($startTime, $endTime) : null,
+            'date' => $startTime->toDateString(),
+        ]);
+
+        return redirect()->route('employees.index')->with(
+            'success',
+            $endTime ? 'Time entry updated and completed!' : 'Active time entry updated!'
+        );
+    }
+
+    private function formatDuration(Carbon $startTime, Carbon $endTime): string
+    {
+        $totalSeconds = $endTime->timestamp - $startTime->timestamp;
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        $seconds = $totalSeconds % 60;
+
+        return $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . ':' . str_pad($seconds, 2, '0', STR_PAD_LEFT);
+    }
+
     public function exportPage()
     {
         return view('time-entries.export');
