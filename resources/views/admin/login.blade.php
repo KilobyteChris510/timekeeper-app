@@ -26,5 +26,9 @@
             Sign In
         </button>
     </form>
+
+    <a href="{{ route('employees.index') }}" class="mt-4 block w-full text-center bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded border border-gray-600 transition">
+        Back to TimeKeeper
+    </a>
 </div>
 @endsection

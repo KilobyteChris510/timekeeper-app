@@ -16,6 +16,7 @@ Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('adm
 
 Route::middleware(AdminPassword::class)->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+    Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
     Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
     Route::get('/employees/manage', [EmployeeController::class, 'manage'])->name('employees.manage');
     Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');

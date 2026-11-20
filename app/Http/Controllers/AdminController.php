@@ -23,6 +23,14 @@ class AdminController extends Controller
         return redirect()->route('admin.index');
     }
 
+    public function logout(Request $request)
+    {
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('employees.index')->with('success', 'You have been signed out.');
+    }
+
     public function index()
     {
         return view('admin.index');
