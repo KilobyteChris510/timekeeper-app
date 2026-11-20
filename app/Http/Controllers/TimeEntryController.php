@@ -179,11 +179,16 @@ class TimeEntryController extends Controller
     {
         $validated = $request->validate([
             'employee_id' => 'nullable|integer|exists:employees,id',
+            'start_date' => 'nullable|required_with:end_date|date',
+            'end_date' => 'nullable|required_with:start_date|date|after_or_equal:start_date',
         ]);
 
         $timeEntries = TimeEntry::with('employee')
             ->when($validated['employee_id'] ?? null, function ($query, $employeeId) {
                 $query->where('employee_id', $employeeId);
+            })
+            ->when($validated['start_date'] ?? null, function ($query, $startDate) use ($validated) {
+                $query->whereBetween('date', [$startDate, $validated['end_date']]);
             })
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')

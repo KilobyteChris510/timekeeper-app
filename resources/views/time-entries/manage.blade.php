@@ -28,10 +28,24 @@
                 @endforeach
             </select>
         </div>
+        <div class="w-full flex flex-wrap gap-3">
+            <div class="flex-1 min-w-[180px]">
+                <label for="start_date" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                    Start date
+                </label>
+                <input type="date" id="start_date" name="start_date" value="{{ request('start_date') }}" class="w-full bg-[#262626] border border-gray-600 text-gray-200 rounded px-3 py-2 text-sm focus:border-green-600 focus:ring-green-600">
+            </div>
+            <div class="flex-1 min-w-[180px]">
+                <label for="end_date" class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                    End date
+                </label>
+                <input type="date" id="end_date" name="end_date" value="{{ request('end_date') }}" class="w-full bg-[#262626] border border-gray-600 text-gray-200 rounded px-3 py-2 text-sm focus:border-green-600 focus:ring-green-600">
+            </div>
+        </div>
         <button type="submit" class="bg-green-700 hover:bg-green-600 text-white font-medium py-2 px-4 rounded border border-green-600 transition text-sm">
             Filter
         </button>
-        @if(request()->filled('employee_id'))
+        @if(request()->filled('employee_id') || request()->filled('start_date') || request()->filled('end_date'))
             <a href="{{ route('time.manage') }}" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium py-2 px-4 rounded border border-gray-600 transition text-sm">
                 Clear
             </a>
